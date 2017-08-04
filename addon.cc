@@ -1,23 +1,12 @@
-#include <nan.h>
 #include "./hiredis/hiredis.h"
 #include "./hiredis/async.h"
+#include "./addon.h"
+#include "./call_binding.h"
+#include <string.h>
 
-using namespace v8;
-using namespace node;
+using namespace std;
 
 namespace nodeaddon {
-    class NodeAddon : public Nan::ObjectWrap {
-        public:
-            static NAN_MODULE_INIT(Initialize);
-            ~NodeAddon();
-        private:
-            redisAsyncContext* context;
-            void AsyncCallback();
-            NodeAddon();
-            static NAN_METHOD(New);
-            static NAN_METHOD(Call);
-    };
-
     NAN_MODULE_INIT(NodeAddon::Initialize) {
         Local<FunctionTemplate> client = Nan::New<FunctionTemplate>(New);
         client->InstanceTemplate()->SetInternalFieldCount(1);
@@ -46,8 +35,23 @@ namespace nodeaddon {
             return Nan::ThrowTypeError("Callback must be a function");
         }
         Local<String> cmd = info[0].As<String>();
+        String::Utf8Value cmdUtf(info[0]->ToString());
+        string cmdStr = string(*cmdUtf);
+
         Local<Function> cb = Local<Function>::Cast(info[1]);
+        NodeAddon* addon = Nan::ObjectWrap::Unwrap<NodeAddon>(info.Holder());
+        CallBinding* binding = new CallBinding;
+        binding->req.data = binding;
+        binding->addon = addon;
+        binding->callback = new Nan::Callback(cb);
+        redisAsyncCommand(addon->context, RedisCallback, (void*)binding, cmdStr.c_str());
+        //uv_queue_work(uv_default_loop(), &binding->req, AsyncWork, AsyncCallback);
     }
+
+    void NodeAddon::RedisCallback(redisAsyncContext* c, void* r, void* privdata) {
+
+    }
+
 
     NodeAddon::NodeAddon() : Nan::ObjectWrap() {
         context = redisAsyncConnect("127.0.0.1", 6379);
