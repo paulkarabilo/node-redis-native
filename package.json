@@ -1,0 +1,15 @@
+{
+  "name": "node-addon",
+  "version": "0.0.1",
+  "description": "native nodejs addon study",
+  "main": "index.js",
+  "scripts": {
+    "test": "test"
+  },
+  "author": "",
+  "license": "WTFPL",
+  "dependencies": {
+    "nan": "^2.6.2",
+    "node-gyp": "^3.6.2"
+  }
+}
