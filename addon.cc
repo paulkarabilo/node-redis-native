@@ -37,6 +37,7 @@ namespace nodeaddon {
         if (!info[1]->IsFunction()) {
             return Nan::ThrowTypeError("Callback must be a function");
         }
+
         String::Utf8Value cmdUtf(info[0]->ToString());
         string cmdStr = string(*cmdUtf);
 
@@ -55,6 +56,8 @@ namespace nodeaddon {
         Local<Value> argv[argc];
         argv[0] = Nan::Null();
         binding->callback->Call(argc, argv);
+        delete binding->callback;
+        delete binding;
     }
 
 
