@@ -18,7 +18,13 @@ namespace nodeaddon {
 
     NAN_METHOD(NodeAddon::New) {
         if (info.IsConstructCall()) {
-            NodeAddon *addon = new NodeAddon();
+            Local<Object> options;
+            if (info.Length() == 1 && info[0]->IsObject()) {
+                options = info[0]->ToObject();
+            } else {
+                options = Nan::New<Object>();
+            }
+            NodeAddon *addon = new NodeAddon(options);
             addon->Wrap(info.This());
             info.GetReturnValue().Set(info.This());
         } else {
@@ -61,8 +67,24 @@ namespace nodeaddon {
     }
 
 
-    NodeAddon::NodeAddon() : Nan::ObjectWrap() {
-        context = redisAsyncConnect("localhost", 6379);
+    NodeAddon::NodeAddon(Local<Object> options) : Nan::ObjectWrap() {
+        Local<Value> host = Nan::Get(options, Nan::New<String>("host").ToLocalChecked()).ToLocalChecked();
+        Local<Value> port = Nan::Get(options, Nan::New<String>("port").ToLocalChecked()).ToLocalChecked();
+        std::string _host;
+        uint16_t _port;
+        if (host->IsString()) {
+            String::Utf8Value host_val(host);
+            _host = *host_val;
+        } else {
+            _host = "localhost";
+        }
+        if (port->IsNumber()) {
+            _port = port->IntegerValue();
+        } else {
+            _port = 6379;
+        }
+
+        context = redisAsyncConnect(_host.c_str(), _port);
         redisLibuvAttach(context, uv_default_loop());
     }
 
