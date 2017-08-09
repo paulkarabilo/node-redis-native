@@ -33,7 +33,6 @@ namespace nodeaddon {
     }
 
     NAN_METHOD(NodeAddon::Call) {
-        Nan::HandleScope scope;
         if (info.Length() != 2) {
             return Nan::ThrowTypeError("Call method accepts 2 arguments: command and callback");
         }
@@ -68,6 +67,7 @@ namespace nodeaddon {
 
 
     NodeAddon::NodeAddon(Local<Object> options) : Nan::ObjectWrap() {
+        Nan::HandleScope scope;
         Local<Value> host = Nan::Get(options, Nan::New<String>("host").ToLocalChecked()).ToLocalChecked();
         Local<Value> port = Nan::Get(options, Nan::New<String>("port").ToLocalChecked()).ToLocalChecked();
         std::string _host;
