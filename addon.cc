@@ -53,6 +53,30 @@ namespace nodeaddon {
         binding->callback = new Nan::Callback(cb);
         redisAsyncCommand(addon->context, RedisCallback, (void*)binding, cmdStr.c_str());
     }
+    
+    NAN_METHOD(NodeAddon::Get) {
+        if (info.Length() != 2) {
+            return Nan::ThrowError("Method get accepts 2 arguments: key and callback");
+        }
+        if (!info[0]->IsString()) {
+            return Nan::ThrowTypeError("Key must be a string");
+        }
+        if (!info[0]->IsFunction()) {
+            return Nan::ThrowTypeError("Callback must be a function");
+        }
+        
+        String::Utf8Value keyUtf(info[0]->ToString());
+        string keyStr = string(*keyUtf);
+        string cmdStr = "GET " + keyStr;
+        
+        Local<Function> cb = Local<Function>::Cast(info[1]);
+        NodeAddon* addon = Nan::ObjectWrap::Unwrap<NodeAddon>(info.Holder());
+        CallBinding* binding = new CallBinding;
+        binding->addon  = addon;
+        binding->callback = new Nan::Callback(cb);
+        redisAsyncCommand(addon->context, RedisCallback, (void*)binding, cmdStr.c_str());
+        
+    }
 
     void NodeAddon::RedisCallback(redisAsyncContext* c, void* r, void* privdata) {
         Nan::HandleScope scope;

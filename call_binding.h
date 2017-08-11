@@ -1,3 +1,6 @@
+#ifndef NODE_ADDON_CALL_BINDING_H
+#define NODE_ADDON_CALL_BINDING_H
+
 #include <uv.h>
 #include "./addon.h"
 
@@ -7,3 +10,5 @@ namespace nodeaddon {
         Nan::Callback* callback;
     } CallBinding;
 }
+
+#endif

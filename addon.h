@@ -1,4 +1,6 @@
-#pragma once
+#ifndef NODE_ADDON_H
+#define NODE_ADDON_H
+
 #include <nan.h>
 #include "./hiredis/async.h"
 
@@ -17,5 +19,7 @@ namespace nodeaddon {
             static NAN_METHOD(New);
             static NAN_METHOD(Call);
             static NAN_METHOD(Get);
+            static NAN_METHOD(Set);
     };
 }
+#endif
