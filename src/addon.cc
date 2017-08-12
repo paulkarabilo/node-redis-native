@@ -1,8 +1,8 @@
-#include "./hiredis/hiredis.h"
-#include "./hiredis/async.h"
-#include "./hiredis/adapters/libuv.h"
-#include "./addon.h"
-#include "./call_binding.h"
+#include "../hiredis/hiredis.h"
+#include "../hiredis/async.h"
+#include "../hiredis/adapters/libuv.h"
+#include "../include/addon.h"
+#include "../include/call_binding.h"
 #include <string.h>
 #include <iostream>
 
