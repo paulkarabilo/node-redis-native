@@ -13,6 +13,8 @@ namespace nodeaddon {
         Local<FunctionTemplate> client = Nan::New<FunctionTemplate>(New);
         client->InstanceTemplate()->SetInternalFieldCount(1);
         Nan::SetPrototypeMethod(client, "call", Call);
+        Nan::SetPrototypeMethod(client, "set", Set);
+        Nan::SetPrototypeMethod(client, "get", Get);
         Nan::Set(target, Nan::New("Client").ToLocalChecked(), Nan::GetFunction(client).ToLocalChecked());
     }
 
@@ -61,7 +63,7 @@ namespace nodeaddon {
         if (!info[0]->IsString()) {
             return Nan::ThrowTypeError("Key must be a string");
         }
-        if (!info[0]->IsFunction()) {
+        if (!info[1]->IsFunction()) {
             return Nan::ThrowTypeError("Callback must be a function");
         }
         
@@ -75,7 +77,33 @@ namespace nodeaddon {
         binding->addon  = addon;
         binding->callback = new Nan::Callback(cb);
         redisAsyncCommand(addon->context, RedisCallback, (void*)binding, cmdStr.c_str());
+    }
+
+    NAN_METHOD(NodeAddon::Set) {
+        if (info.Length() != 3) {
+            return Nan::ThrowError("Method set accepts 3 arguments: key, value and callback");
+        }
+        if (!info[0]->IsString()) {
+            return Nan::ThrowTypeError("Key must be a string");
+        }
+        if (!info[2]->IsFunction()) {
+            return Nan::ThrowTypeError("Callback must be a function");
+        }
         
+        String::Utf8Value keyUtf(info[0]->ToString());
+        string keyStr = string(*keyUtf);
+
+        String::Utf8Value valueUtf(info[1]->ToString());
+        string valStr = string(*valueUtf);
+
+        string cmdStr = "SET " + keyStr + " " + valStr;
+        
+        Local<Function> cb = Local<Function>::Cast(info[2]);
+        NodeAddon* addon = Nan::ObjectWrap::Unwrap<NodeAddon>(info.Holder());
+        CallBinding* binding = new CallBinding;
+        binding->addon  = addon;
+        binding->callback = new Nan::Callback(cb);
+        redisAsyncCommand(addon->context, RedisCallback, (void*)binding, cmdStr.c_str());
     }
 
     Local<Value> NodeAddon::ParseReply(redisReply* r) {
