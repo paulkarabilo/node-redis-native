@@ -78,12 +78,40 @@ namespace nodeaddon {
         
     }
 
+    Local<Value> NodeAddon::ParseReply(redisReply* r) {
+        Nan::EscapableHandleScope scope;
+        Local<Value> reply;
+
+        if (r->type == REDIS_REPLY_NIL) {
+            return scope.Escape(Nan::Null());
+        } else if (r->type == REDIS_REPLY_INTEGER) {
+            return scope.Escape(Nan::New<Number>(r->integer));
+        } else if (r->type == REDIS_REPLY_STRING || r->type == REDIS_REPLY_STATUS) {
+            return scope.Escape(Nan::New<String>(r->str, r->len).ToLocalChecked());
+        } else if (r->type == REDIS_REPLY_ARRAY) {
+            Local<Array> a = Nan::New<Array>();
+            for (uint32_t i = 0; i < r->len; i++) {
+                a->Set(i, ParseReply(r->element[i]));
+            }
+            return scope.Escape(a);
+        }
+
+        return scope.Escape(Nan::Null());
+    }
+
     void NodeAddon::RedisCallback(redisAsyncContext* c, void* r, void* privdata) {
         Nan::HandleScope scope;
+        redisReply* reply = static_cast<redisReply*>(r);
         CallBinding* binding = static_cast<CallBinding*>(privdata);
-        const unsigned int argc = 1;
+        int argc = 2;
         Local<Value> argv[argc];
-        argv[0] = Nan::Null();
+        if (reply->type == REDIS_ERR) {
+            argv[0] = Nan::New<String>(reply->str).ToLocalChecked();
+            argv[1] = Nan::Null();
+        } else {
+            argv[0] = Nan::Null();
+            argv[1] = ParseReply(reply);
+        }
         binding->callback->Call(argc, argv);
         delete binding->callback;
         delete binding;

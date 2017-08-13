@@ -15,6 +15,7 @@ namespace nodeaddon {
         private:
             redisAsyncContext* context;
             static void RedisCallback(redisAsyncContext* c, void* r, void* privdata);
+            static Local<Value> ParseReply(redisReply *r);
             NodeAddon(Local<Object>);
             static NAN_METHOD(New);
             static NAN_METHOD(Call);
