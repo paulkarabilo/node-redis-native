@@ -15,6 +15,7 @@ namespace nodeaddon {
         Nan::SetPrototypeMethod(client, "call", Call);
         Nan::SetPrototypeMethod(client, "set", Set);
         Nan::SetPrototypeMethod(client, "get", Get);
+        Nan::SetPrototypeMethod(client, "incr", Incr);
         Nan::Set(target, Nan::New("Client").ToLocalChecked(), Nan::GetFunction(client).ToLocalChecked());
     }
 
@@ -103,6 +104,28 @@ namespace nodeaddon {
         CallBinding* binding = new CallBinding;
         binding->addon  = addon;
         binding->callback = new Nan::Callback(cb);
+        redisAsyncCommand(addon->context, RedisCallback, (void*)binding, cmdStr.c_str());
+    }
+    
+    NAN_METHOD(NodeAddon::Incr) {
+        if (info.Length() != 1){
+            return Nan::ThrowError("Method incr accepts 2 arguments: key and callback");
+        }
+        if (!info[1]->IsString()) {
+            return Nan::ThrowTypeError("Key must be a string");
+        }
+        if (!info[2]->IsFunction()) {
+            return Nan::ThrowTypeError("Callback must be a function");
+        }
+        String::Utf8Value keyUtf(info[0]->ToString());
+        string keyStr = string(*keyUtf);
+
+        Local<Function> cb = Local<Function>::Cast(info[1]);
+        NodeAddon* addon = Nan::ObjectWrap::Unwrap<NodeAddon>(info.Holder());
+        CallBinding* binding = new CallBinding;
+        binding->addon  = addon;
+        binding->callback = new Nan::Callback(cb);
+        string cmdStr = "INCR " + keyStr;
         redisAsyncCommand(addon->context, RedisCallback, (void*)binding, cmdStr.c_str());
     }
 

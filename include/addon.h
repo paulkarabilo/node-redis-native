@@ -21,6 +21,7 @@ namespace nodeaddon {
             static NAN_METHOD(Call);
             static NAN_METHOD(Get);
             static NAN_METHOD(Set);
+            static NAN_METHOD(Incr);
     };
 }
 #endif
