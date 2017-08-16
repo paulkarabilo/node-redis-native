@@ -36,15 +36,9 @@ namespace nodeaddon {
     }
 
     NAN_METHOD(NodeAddon::Call) {
-        if (info.Length() != 2) {
-            return Nan::ThrowTypeError("Call method accepts 2 arguments: command and callback");
-        }
-        if (!info[0]->IsString()) {
-            return Nan::ThrowTypeError("Command must be a string");
-        }
-        if (!info[1]->IsFunction()) {
-            return Nan::ThrowTypeError("Callback must be a function");
-        }
+        ASSERT_NARGS("Call", 2);
+        ASSERT_STRING("Call", 0);
+        ASSERT_FUNCTION("Call", 1);
 
         String::Utf8Value cmdUtf(info[0]->ToString());
         string cmdStr = string(*cmdUtf);
@@ -58,15 +52,9 @@ namespace nodeaddon {
     }
     
     NAN_METHOD(NodeAddon::Get) {
-        if (info.Length() != 2) {
-            return Nan::ThrowError("Method get accepts 2 arguments: key and callback");
-        }
-        if (!info[0]->IsString()) {
-            return Nan::ThrowTypeError("Key must be a string");
-        }
-        if (!info[1]->IsFunction()) {
-            return Nan::ThrowTypeError("Callback must be a function");
-        }
+        ASSERT_NARGS("Get", 2);
+        ASSERT_STRING("Get", 0);
+        ASSERT_FUNCTION("Get", 1);
         
         String::Utf8Value keyUtf(info[0]->ToString());
         string keyStr = string(*keyUtf);
@@ -81,15 +69,9 @@ namespace nodeaddon {
     }
 
     NAN_METHOD(NodeAddon::Set) {
-        if (info.Length() != 3) {
-            return Nan::ThrowError("Method set accepts 3 arguments: key, value and callback");
-        }
-        if (!info[0]->IsString()) {
-            return Nan::ThrowTypeError("Key must be a string");
-        }
-        if (!info[2]->IsFunction()) {
-            return Nan::ThrowTypeError("Callback must be a function");
-        }
+        ASSERT_NARGS("Set", 3);
+        ASSERT_STRING("Set", 0);
+        ASSERT_FUNCTION("Set", 2);
         
         String::Utf8Value keyUtf(info[0]->ToString());
         string keyStr = string(*keyUtf);
@@ -108,15 +90,10 @@ namespace nodeaddon {
     }
     
     NAN_METHOD(NodeAddon::Incr) {
-        if (info.Length() != 1){
-            return Nan::ThrowError("Method incr accepts 2 arguments: key and callback");
-        }
-        if (!info[1]->IsString()) {
-            return Nan::ThrowTypeError("Key must be a string");
-        }
-        if (!info[2]->IsFunction()) {
-            return Nan::ThrowTypeError("Callback must be a function");
-        }
+        ASSERT_NARGS("Incr", 2);
+        ASSERT_STRING("Incr", 0);
+        ASSERT_FUNCTION("Incr", 1);
+
         String::Utf8Value keyUtf(info[0]->ToString());
         string keyStr = string(*keyUtf);
 
