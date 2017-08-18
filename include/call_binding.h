@@ -5,9 +5,17 @@
 #include "./addon.h"
 
 namespace nodeaddon {
-    typedef struct {
+    typedef struct CallBinding {
         NodeAddon* addon;
         Nan::Callback* callback;
+        CallBinding();
+        CallBinding(NodeAddon* a, Local<Function> cb) {
+            addon = a;
+            callback = new Nan::Callback(cb);
+        };
+        ~CallBinding() {
+            delete callback;
+        };
     } CallBinding;
 }
 

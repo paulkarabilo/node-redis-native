@@ -45,9 +45,7 @@ namespace nodeaddon {
 
         Local<Function> cb = Local<Function>::Cast(info[1]);
         NodeAddon* addon = Nan::ObjectWrap::Unwrap<NodeAddon>(info.Holder());
-        CallBinding* binding = new CallBinding;
-        binding->addon = addon;
-        binding->callback = new Nan::Callback(cb);
+        CallBinding* binding = new CallBinding(addon, cb);
         redisAsyncCommand(addon->context, RedisCallback, (void*)binding, cmdStr.c_str());
     }
     
@@ -62,9 +60,7 @@ namespace nodeaddon {
         
         Local<Function> cb = Local<Function>::Cast(info[1]);
         NodeAddon* addon = Nan::ObjectWrap::Unwrap<NodeAddon>(info.Holder());
-        CallBinding* binding = new CallBinding;
-        binding->addon  = addon;
-        binding->callback = new Nan::Callback(cb);
+        CallBinding* binding = new CallBinding(addon, cb);
         redisAsyncCommand(addon->context, RedisCallback, (void*)binding, cmdStr.c_str());
     }
 
@@ -83,9 +79,7 @@ namespace nodeaddon {
         
         Local<Function> cb = Local<Function>::Cast(info[2]);
         NodeAddon* addon = Nan::ObjectWrap::Unwrap<NodeAddon>(info.Holder());
-        CallBinding* binding = new CallBinding;
-        binding->addon  = addon;
-        binding->callback = new Nan::Callback(cb);
+        CallBinding* binding = new CallBinding(addon, cb);
         redisAsyncCommand(addon->context, RedisCallback, (void*)binding, cmdStr.c_str());
     }
     
@@ -99,9 +93,7 @@ namespace nodeaddon {
 
         Local<Function> cb = Local<Function>::Cast(info[1]);
         NodeAddon* addon = Nan::ObjectWrap::Unwrap<NodeAddon>(info.Holder());
-        CallBinding* binding = new CallBinding;
-        binding->addon  = addon;
-        binding->callback = new Nan::Callback(cb);
+        CallBinding* binding = new CallBinding(addon, cb);
         string cmdStr = "INCR " + keyStr;
         redisAsyncCommand(addon->context, RedisCallback, (void*)binding, cmdStr.c_str());
     }
@@ -141,7 +133,6 @@ namespace nodeaddon {
             argv[1] = ParseReply(reply);
         }
         binding->callback->Call(argc, argv);
-        delete binding->callback;
         delete binding;
     }
 
