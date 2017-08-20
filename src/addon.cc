@@ -136,18 +136,17 @@ namespace nodeaddon {
         delete binding;
     }
 
-
     NodeAddon::NodeAddon(Local<Object> options) : Nan::ObjectWrap() {
         Nan::HandleScope scope;
         Local<Value> host = Nan::Get(options, Nan::New<String>("host").ToLocalChecked()).ToLocalChecked();
         Local<Value> port = Nan::Get(options, Nan::New<String>("port").ToLocalChecked()).ToLocalChecked();
-        std::string _host;
+        char* _host;
         uint16_t _port;
         if (host->IsString()) {
-            String::Utf8Value host_val(host);
+            Nan::Utf8String host_val(host);
             _host = *host_val;
         } else {
-            _host = "localhost";
+            _host = (char*)"localhost";
         }
         if (port->IsNumber()) {
             _port = port->IntegerValue();
@@ -155,7 +154,7 @@ namespace nodeaddon {
             _port = 6379;
         }
 
-        context = redisAsyncConnect(_host.c_str(), _port);
+        context = redisAsyncConnect(_host, _port);
         redisLibuvAttach(context, uv_default_loop());
     }
 
