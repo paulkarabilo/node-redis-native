@@ -1,15 +1,16 @@
 {
-  "name": "node-addon",
+  "name": "node-redis-native",
   "version": "0.0.1",
-  "description": "native nodejs addon study",
+  "description": "native nodejs redis addon experiment",
   "main": "index.js",
+  "private": true,
   "scripts": {
-    "test": "test"
+    "test": "test",
+    "install": "git submodule update --init"
   },
   "author": "",
   "license": "WTFPL",
   "dependencies": {
-    "nan": "^2.6.2",
-    "node-gyp": "^3.6.2"
+    "nan": "^2.6.2"
   }
 }
