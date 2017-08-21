@@ -5,8 +5,7 @@
   "main": "index.js",
   "private": true,
   "scripts": {
-    "test": "test",
-    "install": "git submodule update --init"
+    "test": "test"
   },
   "author": "",
   "license": "WTFPL",
