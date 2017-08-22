@@ -33,6 +33,8 @@ namespace nodeaddon {
             ~NodeAddon();
         private:
             redisAsyncContext* context;
+            char* host;
+            uint16_t port;
             static void RedisCallback(redisAsyncContext* c, void* r, void* privdata);
             static Local<Value> ParseReply(redisReply *r);
             NodeAddon(Local<Object>);

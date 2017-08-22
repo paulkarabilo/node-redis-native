@@ -138,24 +138,32 @@ namespace nodeaddon {
 
     NodeAddon::NodeAddon(Local<Object> options) : Nan::ObjectWrap() {
         Nan::HandleScope scope;
-        Local<Value> host = Nan::Get(options, Nan::New<String>("host").ToLocalChecked()).ToLocalChecked();
-        Local<Value> port = Nan::Get(options, Nan::New<String>("port").ToLocalChecked()).ToLocalChecked();
-        char* _host;
-        uint16_t _port;
-        if (host->IsString()) {
-            Nan::Utf8String host_val(host);
-            _host = *host_val;
+        Local<Value> _host = Nan::Get(options, Nan::New<String>("host").ToLocalChecked()).ToLocalChecked();
+        Local<Value> _port = Nan::Get(options, Nan::New<String>("port").ToLocalChecked()).ToLocalChecked();
+        //Local<Value> onConnect = Nan::Get(options, Nan::New<String>("onConnect").ToLocalChecked()).ToLocalChecked();
+        //Local<Value> onDisconnect = Nan::Get(options, Nan::New<String>("onDisconnect").ToLocalChecked()).ToLocalChecked();
+        Local<Value> onError = Nan::Get(options, Nan::New<String>("onError").ToLocalChecked()).ToLocalChecked();
+        if (_host->IsString()) {
+            Nan::Utf8String host_val(_host);
+            host = *host_val;
         } else {
-            _host = (char*)"localhost";
+            host = (char*)"localhost";
         }
-        if (port->IsNumber()) {
-            _port = port->IntegerValue();
+        if (_port->IsNumber()) {
+            port = _port->IntegerValue();
         } else {
-            _port = 6379;
+            port = 6379;
         }
 
-        context = redisAsyncConnect(_host, _port);
-        redisLibuvAttach(context, uv_default_loop());
+        context = redisAsyncConnect(host, port);
+        if (context->err && onError->IsFunction()) {
+            Nan::Callback cb(Local<Function>::Cast(onError));
+            int argc = 1;
+            Local<Value> argv[argc] {Nan::New<String>(context->errstr).ToLocalChecked()};
+            cb.Call(argc, argv);
+        } else {
+            redisLibuvAttach(context, uv_default_loop());
+        }
     }
 
     NodeAddon::~NodeAddon() {
