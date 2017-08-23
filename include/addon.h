@@ -26,11 +26,16 @@ using namespace node;
 
 #define ASSERT_FUNCTION(name, i) ASSERT_TYPE(name, i, Function)
 
-#define BIND_CALL(command, cb) \
+#define BIND_CALL(cb, fmt, ...) \
     Local<Function> callback = Local<Function>::Cast(cb); \
     NodeAddon* addon = Nan::ObjectWrap::Unwrap<NodeAddon>(info.Holder()); \
     CallBinding* binding = new CallBinding(addon, callback); \
-    redisAsyncCommand(addon->context, RedisCallback, (void*)binding, (command));
+    char* command; \
+    asprintf(&command, fmt, ##__VA_ARGS__); \
+    redisAsyncCommand(addon->context, RedisCallback, (void*)binding, (command)); \
+    free(command);
+
+#define STR_ARG(n) (*(Nan::Utf8String)(info[(n)]))
 
 namespace nodeaddon {
     class NodeAddon : public Nan::ObjectWrap {

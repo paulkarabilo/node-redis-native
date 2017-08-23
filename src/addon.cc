@@ -3,7 +3,6 @@
 #include "../hiredis/adapters/libuv.h"
 #include "../include/addon.h"
 #include "../include/call_binding.h"
-#include <string.h>
 #include <iostream>
 
 using namespace std;
@@ -35,40 +34,28 @@ namespace nodeaddon {
         ASSERT_NARGS("Call", 2);
         ASSERT_STRING("Call", 0);
         ASSERT_FUNCTION("Call", 1);
-
-        char* command = *(Nan::Utf8String)(info[0]);
-        BIND_CALL(command, info[1]);
+        BIND_CALL(info[1], STR_ARG(0));
     }
     
     NAN_METHOD(NodeAddon::Get) {
         ASSERT_NARGS("Get", 2);
         ASSERT_STRING("Get", 0);
         ASSERT_FUNCTION("Get", 1);
-        char* command;
-        asprintf(&command, "GET %s", (*(Nan::Utf8String)(info[0])));
-        BIND_CALL(command, info[1]);
-        free(command);
+        BIND_CALL(info[1], "GET %s", STR_ARG(0));
     }
 
     NAN_METHOD(NodeAddon::Set) {
         ASSERT_NARGS("Set", 3);
         ASSERT_STRING("Set", 0);
         ASSERT_FUNCTION("Set", 2);
-        
-        char* command;
-        asprintf(&command, "SET %s %s", (*(Nan::Utf8String)(info[0])), (*(Nan::Utf8String)(info[1])));
-        BIND_CALL(command, info[2]);
-        free(command);
+        BIND_CALL(info[2], "SET %s %s", STR_ARG(0), STR_ARG(1));
     }
     
     NAN_METHOD(NodeAddon::Incr) {
         ASSERT_NARGS("Incr", 2);
         ASSERT_STRING("Incr", 0);
         ASSERT_FUNCTION("Incr", 1);
-        char* command;
-        asprintf(&command, "INCR %s", (*(Nan::Utf8String)(info[0])));
-        BIND_CALL(command, info[1]);
-        free(command);
+        BIND_CALL(info[1], "INCR %s", STR_ARG(0));
     }
 
     Local<Value> NodeAddon::ParseReply(redisReply* r) {
