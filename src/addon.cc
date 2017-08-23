@@ -20,19 +20,15 @@ namespace nodeaddon {
     }
 
     NAN_METHOD(NodeAddon::New) {
-        if (info.IsConstructCall()) {
-            Local<Object> options;
-            if (info.Length() == 1 && info[0]->IsObject()) {
-                options = info[0]->ToObject();
-            } else {
-                options = Nan::New<Object>();
-            }
-            NodeAddon *addon = new NodeAddon(options);
-            addon->Wrap(info.This());
-            info.GetReturnValue().Set(info.This());
+        Local<Object> options;
+        if (info.Length() == 1 && info[0]->IsObject()) {
+            options = info[0]->ToObject();
         } else {
-            //Make non-constructor call work
+            options = Nan::New<Object>();
         }
+        NodeAddon *addon = new NodeAddon(options);
+        addon->Wrap(info.This());
+        info.GetReturnValue().Set(info.This());
     }
 
     NAN_METHOD(NodeAddon::Call) {
@@ -40,13 +36,12 @@ namespace nodeaddon {
         ASSERT_STRING("Call", 0);
         ASSERT_FUNCTION("Call", 1);
 
-        String::Utf8Value cmdUtf(info[0]->ToString());
-        string cmdStr = string(*cmdUtf);
+        char* command = *(Nan::Utf8String)(info[0]);
 
         Local<Function> cb = Local<Function>::Cast(info[1]);
         NodeAddon* addon = Nan::ObjectWrap::Unwrap<NodeAddon>(info.Holder());
         CallBinding* binding = new CallBinding(addon, cb);
-        redisAsyncCommand(addon->context, RedisCallback, (void*)binding, cmdStr.c_str());
+        redisAsyncCommand(addon->context, RedisCallback, (void*)binding, command);
     }
     
     NAN_METHOD(NodeAddon::Get) {
