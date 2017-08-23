@@ -26,6 +26,12 @@ using namespace node;
 
 #define ASSERT_FUNCTION(name, i) ASSERT_TYPE(name, i, Function)
 
+#define BIND_CALL(command, cb) \
+    Local<Function> callback = Local<Function>::Cast(cb); \
+    NodeAddon* addon = Nan::ObjectWrap::Unwrap<NodeAddon>(info.Holder()); \
+    CallBinding* binding = new CallBinding(addon, callback); \
+    redisAsyncCommand(addon->context, RedisCallback, (void*)binding, (command));
+
 namespace nodeaddon {
     class NodeAddon : public Nan::ObjectWrap {
         public:
@@ -43,6 +49,8 @@ namespace nodeaddon {
             static NAN_METHOD(Get);
             static NAN_METHOD(Set);
             static NAN_METHOD(Incr);
+            static NAN_METHOD(Del);
+            static NAN_METHOD(Exists);
     };
 }
 #endif

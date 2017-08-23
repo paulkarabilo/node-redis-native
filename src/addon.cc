@@ -37,26 +37,17 @@ namespace nodeaddon {
         ASSERT_FUNCTION("Call", 1);
 
         char* command = *(Nan::Utf8String)(info[0]);
-
-        Local<Function> cb = Local<Function>::Cast(info[1]);
-        NodeAddon* addon = Nan::ObjectWrap::Unwrap<NodeAddon>(info.Holder());
-        CallBinding* binding = new CallBinding(addon, cb);
-        redisAsyncCommand(addon->context, RedisCallback, (void*)binding, command);
+        BIND_CALL(command, info[1]);
     }
     
     NAN_METHOD(NodeAddon::Get) {
         ASSERT_NARGS("Get", 2);
         ASSERT_STRING("Get", 0);
         ASSERT_FUNCTION("Get", 1);
-        
-        String::Utf8Value keyUtf(info[0]->ToString());
-        string keyStr = string(*keyUtf);
-        string cmdStr = "GET " + keyStr;
-        
-        Local<Function> cb = Local<Function>::Cast(info[1]);
-        NodeAddon* addon = Nan::ObjectWrap::Unwrap<NodeAddon>(info.Holder());
-        CallBinding* binding = new CallBinding(addon, cb);
-        redisAsyncCommand(addon->context, RedisCallback, (void*)binding, cmdStr.c_str());
+        char* command;
+        asprintf(&command, "GET %s", (*(Nan::Utf8String)(info[0])));
+        BIND_CALL(command, info[1]);
+        free(command);
     }
 
     NAN_METHOD(NodeAddon::Set) {
@@ -64,33 +55,20 @@ namespace nodeaddon {
         ASSERT_STRING("Set", 0);
         ASSERT_FUNCTION("Set", 2);
         
-        String::Utf8Value keyUtf(info[0]->ToString());
-        string keyStr = string(*keyUtf);
-
-        String::Utf8Value valueUtf(info[1]->ToString());
-        string valStr = string(*valueUtf);
-
-        string cmdStr = "SET " + keyStr + " " + valStr;
-        
-        Local<Function> cb = Local<Function>::Cast(info[2]);
-        NodeAddon* addon = Nan::ObjectWrap::Unwrap<NodeAddon>(info.Holder());
-        CallBinding* binding = new CallBinding(addon, cb);
-        redisAsyncCommand(addon->context, RedisCallback, (void*)binding, cmdStr.c_str());
+        char* command;
+        asprintf(&command, "SET %s %s", (*(Nan::Utf8String)(info[0])), (*(Nan::Utf8String)(info[1])));
+        BIND_CALL(command, info[2]);
+        free(command);
     }
     
     NAN_METHOD(NodeAddon::Incr) {
         ASSERT_NARGS("Incr", 2);
         ASSERT_STRING("Incr", 0);
         ASSERT_FUNCTION("Incr", 1);
-
-        String::Utf8Value keyUtf(info[0]->ToString());
-        string keyStr = string(*keyUtf);
-
-        Local<Function> cb = Local<Function>::Cast(info[1]);
-        NodeAddon* addon = Nan::ObjectWrap::Unwrap<NodeAddon>(info.Holder());
-        CallBinding* binding = new CallBinding(addon, cb);
-        string cmdStr = "INCR " + keyStr;
-        redisAsyncCommand(addon->context, RedisCallback, (void*)binding, cmdStr.c_str());
+        char* command;
+        asprintf(&command, "INCR %s", (*(Nan::Utf8String)(info[0])));
+        BIND_CALL(command, info[1]);
+        free(command);
     }
 
     Local<Value> NodeAddon::ParseReply(redisReply* r) {
