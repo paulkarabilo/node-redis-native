@@ -96,12 +96,32 @@ namespace nodeaddon {
         delete binding;
     }
 
+    void NodeAddon::ConnectCallback(const redisAsyncContext* c, int status) {
+        Nan::HandleScope scope;
+        NodeAddon* addon = static_cast<NodeAddon*>(c->data);
+        if (addon->onConnect != nullptr) {
+            int argc = 1;
+            Local<Value> argv[argc] = {Nan::New<Number>(status)};
+            addon->onConnect->Call(argc, argv);
+        }
+    }
+
+    void NodeAddon::DisconnectCallback(const redisAsyncContext* c, int status) {
+        Nan::HandleScope scope;
+        NodeAddon* addon = static_cast<NodeAddon*>(c->data);
+        if (addon->onDisconnect != nullptr) {
+            int argc = 1;
+            Local<Value> argv[argc] = {Nan::New<Number>(status)};
+            addon->onDisconnect->Call(argc, argv);
+        }
+    }
+
     NodeAddon::NodeAddon(Local<Object> options) : Nan::ObjectWrap() {
         Nan::HandleScope scope;
         Local<Value> _host = Nan::Get(options, Nan::New<String>("host").ToLocalChecked()).ToLocalChecked();
         Local<Value> _port = Nan::Get(options, Nan::New<String>("port").ToLocalChecked()).ToLocalChecked();
-        //Local<Value> onConnect = Nan::Get(options, Nan::New<String>("onConnect").ToLocalChecked()).ToLocalChecked();
-        //Local<Value> onDisconnect = Nan::Get(options, Nan::New<String>("onDisconnect").ToLocalChecked()).ToLocalChecked();
+        Local<Value> _onConnect = Nan::Get(options, Nan::New<String>("onConnect").ToLocalChecked()).ToLocalChecked();
+        Local<Value> _onDisconnect = Nan::Get(options, Nan::New<String>("onDisconnect").ToLocalChecked()).ToLocalChecked();
         Local<Value> onError = Nan::Get(options, Nan::New<String>("onError").ToLocalChecked()).ToLocalChecked();
         if (_host->IsString()) {
             Nan::Utf8String host_val(_host);
@@ -122,6 +142,15 @@ namespace nodeaddon {
             Local<Value> argv[argc] {Nan::New<String>(context->errstr).ToLocalChecked()};
             cb.Call(argc, argv);
         } else {
+            context->data = (void*)this;
+            if (_onConnect->IsFunction()) {
+                onConnect = new Nan::Callback(Local<Function>::Cast(_onConnect));
+                redisAsyncSetConnectCallback(context, ConnectCallback);
+            }
+            if (_onDisconnect->IsFunction()) {
+                onDisconnect = new Nan::Callback(Local<Function>::Cast(_onDisconnect));
+                redisAsyncSetDisconnectCallback(context, DisconnectCallback);
+            }
             redisLibuvAttach(context, uv_default_loop());
         }
     }

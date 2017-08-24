@@ -46,7 +46,11 @@ namespace nodeaddon {
             redisAsyncContext* context;
             char* host;
             uint16_t port;
+            Nan::Callback* onConnect;
+            Nan::Callback* onDisconnect;
             static void RedisCallback(redisAsyncContext* c, void* r, void* privdata);
+            static void ConnectCallback(const redisAsyncContext* c, int status);
+            static void DisconnectCallback(const redisAsyncContext* c, int status);
             static Local<Value> ParseReply(redisReply *r);
             NodeAddon(Local<Object>);
             static NAN_METHOD(New);
