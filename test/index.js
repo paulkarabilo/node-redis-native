@@ -15,11 +15,11 @@ describe('Redis Addon', function() {
         });
     });
 
-    it("Sets and gets value", function (done) {
-        client.set("test", 1, function (err, reply) {
+    it("Calls set and get", function (done) {
+        client.call("set test 1", function (err, reply) {
             if (err) return done(err);
             reply.should.equal('OK');
-            client.get("test", function (err, reply) {
+            client.call("get test", function (err, reply) {
                 if (err) return done(err);
                 reply.should.equal('1');
                 done();    
@@ -28,10 +28,10 @@ describe('Redis Addon', function() {
     });
 
     it ("Increases value", function(done) {
-        client.incr("test1", function (err, reply) {
+        client.call("incr test1", function (err, reply) {
             if (err) return done(err);
             reply.should.equal(1);
-            client.incr("test1", function (err, reply) {
+            client.call("incr test1", function (err, reply) {
                 if (err) return done(err);
                 reply.should.equal(2);
                 done();    
