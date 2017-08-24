@@ -12,9 +12,6 @@ namespace nodeaddon {
         Local<FunctionTemplate> client = Nan::New<FunctionTemplate>(New);
         client->InstanceTemplate()->SetInternalFieldCount(1);
         Nan::SetPrototypeMethod(client, "call", Call);
-        Nan::SetPrototypeMethod(client, "set", Set);
-        Nan::SetPrototypeMethod(client, "get", Get);
-        Nan::SetPrototypeMethod(client, "incr", Incr);
         Nan::Set(target, Nan::New("Client").ToLocalChecked(), Nan::GetFunction(client).ToLocalChecked());
     }
 
@@ -35,27 +32,6 @@ namespace nodeaddon {
         ASSERT_STRING("Call", 0);
         ASSERT_FUNCTION("Call", 1);
         BIND_CALL(info[1], STR_ARG(0));
-    }
-    
-    NAN_METHOD(NodeAddon::Get) {
-        ASSERT_NARGS("Get", 2);
-        ASSERT_STRING("Get", 0);
-        ASSERT_FUNCTION("Get", 1);
-        BIND_CALL(info[1], "GET %s", STR_ARG(0));
-    }
-
-    NAN_METHOD(NodeAddon::Set) {
-        ASSERT_NARGS("Set", 3);
-        ASSERT_STRING("Set", 0);
-        ASSERT_FUNCTION("Set", 2);
-        BIND_CALL(info[2], "SET %s %s", STR_ARG(0), STR_ARG(1));
-    }
-    
-    NAN_METHOD(NodeAddon::Incr) {
-        ASSERT_NARGS("Incr", 2);
-        ASSERT_STRING("Incr", 0);
-        ASSERT_FUNCTION("Incr", 1);
-        BIND_CALL(info[1], "INCR %s", STR_ARG(0));
     }
 
     Local<Value> NodeAddon::ParseReply(redisReply* r) {
@@ -156,7 +132,10 @@ namespace nodeaddon {
     }
 
     NodeAddon::~NodeAddon() {
+        if (onDisconnect != nullptr) delete onDisconnect;
+        if (onConnect != nullptr) delete onConnect;
         redisAsyncDisconnect(context);
+        redisAsyncFree(context);
     }
 }
 

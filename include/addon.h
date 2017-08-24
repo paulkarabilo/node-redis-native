@@ -55,11 +55,6 @@ namespace nodeaddon {
             NodeAddon(Local<Object>);
             static NAN_METHOD(New);
             static NAN_METHOD(Call);
-            static NAN_METHOD(Get);
-            static NAN_METHOD(Set);
-            static NAN_METHOD(Incr);
-            static NAN_METHOD(Del);
-            static NAN_METHOD(Exists);
     };
 }
 #endif
