@@ -13,7 +13,10 @@
     "nan": "^2.6.2"
   },
   "devDependencies": {
+    "benchmark": "^2.1.4",
     "chai": "^4.1.1",
-    "mocha": "^3.5.0"
+    "mocha": "^3.5.0",
+    "redis": "^2.8.0",
+    "redis-fast-driver": "^1.0.5"
   }
 }
