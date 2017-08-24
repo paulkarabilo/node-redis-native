@@ -6,11 +6,11 @@ Currently supports only node v8.x.
 
 node-gyp should be installed
 
-```
-    npm install git+https://github.com/paulkarabilo/adn.git
+```sh
+    $ npm install git+https://github.com/paulkarabilo/adn.git
 ```
 
-```
+```javascript
     var r = require('node-redis-native');
     var client = new r.Client({
         host: '127.0.0.1', //optional, default is 'localhost'
