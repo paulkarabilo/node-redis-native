@@ -5,8 +5,6 @@
 #include "../include/call_binding.h"
 #include <iostream>
 
-using namespace std;
-
 namespace nodeaddon {
     NAN_MODULE_INIT(NodeAddon::Initialize) {
         Local<FunctionTemplate> client = Nan::New<FunctionTemplate>(New);
@@ -17,11 +15,9 @@ namespace nodeaddon {
 
     NAN_METHOD(NodeAddon::New) {
         Local<Object> options;
-        if (info.Length() == 1 && info[0]->IsObject()) {
-            options = info[0]->ToObject();
-        } else {
-            options = Nan::New<Object>();
-        }
+        options = (info.Length() == 1 && info[0]->IsObject()) ?
+            info[0]->ToObject() :
+            Nan::New<Object>();
         NodeAddon *addon = new NodeAddon(options);
         addon->Wrap(info.This());
         info.GetReturnValue().Set(info.This());
@@ -46,7 +42,7 @@ namespace nodeaddon {
             return scope.Escape(Nan::New<String>(r->str, r->len).ToLocalChecked());
         } else if (r->type == REDIS_REPLY_ARRAY) {
             Local<Array> a = Nan::New<Array>();
-            for (uint32_t i = 0; i < r->len; i++) {
+            for (uint32_t i = 0; i < r->elements; i++) {
                 a->Set(i, ParseReply(r->element[i]));
             }
             return scope.Escape(a);
@@ -59,6 +55,10 @@ namespace nodeaddon {
         Nan::HandleScope scope;
         redisReply* reply = static_cast<redisReply*>(r);
         CallBinding* binding = static_cast<CallBinding*>(privdata);
+        if (reply == NULL) {
+            delete binding;
+            return;
+        }
         int argc = 2;
         Local<Value> argv[argc];
         if (reply->type == REDIS_ERR) {
@@ -76,9 +76,8 @@ namespace nodeaddon {
         Nan::HandleScope scope;
         NodeAddon* addon = static_cast<NodeAddon*>(c->data);
         if (addon->onConnect != nullptr) {
-            int argc = 1;
-            Local<Value> argv[argc] = {Nan::New<Number>(status)};
-            addon->onConnect->Call(argc, argv);
+            Local<Value> argv[1] = {Nan::New<Number>(status)};
+            addon->onConnect->Call(1, argv);
         }
     }
 
@@ -86,9 +85,8 @@ namespace nodeaddon {
         Nan::HandleScope scope;
         NodeAddon* addon = static_cast<NodeAddon*>(c->data);
         if (addon->onDisconnect != nullptr) {
-            int argc = 1;
-            Local<Value> argv[argc] = {Nan::New<Number>(status)};
-            addon->onDisconnect->Call(argc, argv);
+            Local<Value> argv[1] = {Nan::New<Number>(status)};
+            addon->onDisconnect->Call(1, argv);
         }
     }
 
