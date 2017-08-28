@@ -26,9 +26,7 @@ using namespace node;
 
 #define ASSERT_FUNCTION(name, i) ASSERT_TYPE(name, i, Function)
 
-#define BIND_CALL(cb, fmt, ...) \
-    Local<Function> callback = Local<Function>::Cast(cb); \
-    NodeAddon* addon = Nan::ObjectWrap::Unwrap<NodeAddon>(info.Holder()); \
+#define BIND_CALL(addon, callback, fmt, ...) \
     CallBinding* binding = new CallBinding(addon, callback); \
     char* command; \
     asprintf(&command, fmt, ##__VA_ARGS__); \
@@ -49,6 +47,7 @@ namespace nodeaddon {
             Nan::Callback* onConnect;
             Nan::Callback* onDisconnect;
             static void RedisCallback(redisAsyncContext* c, void* r, void* privdata);
+            static void BindCall(const Nan::FunctionCallbackInfo<Value>& info, Local<Value> cb, char* fmt);
             static void ConnectCallback(const redisAsyncContext* c, int status);
             static void DisconnectCallback(const redisAsyncContext* c, int status);
             static Local<Value> ParseReply(redisReply *r);

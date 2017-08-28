@@ -14,8 +14,7 @@ namespace nodeaddon {
     }
 
     NAN_METHOD(NodeAddon::New) {
-        Local<Object> options;
-        options = (info.Length() == 1 && info[0]->IsObject()) ?
+        Local<Object> options = (info.Length() == 1 && info[0]->IsObject()) ?
             info[0]->ToObject() :
             Nan::New<Object>();
         NodeAddon *addon = new NodeAddon(options);
@@ -27,7 +26,7 @@ namespace nodeaddon {
         ASSERT_NARGS("Call", 2);
         ASSERT_STRING("Call", 0);
         ASSERT_FUNCTION("Call", 1);
-        BIND_CALL(info[1], STR_ARG(0));
+        BindCall(info, info[1], STR_ARG(0));
     }
 
     Local<Value> NodeAddon::ParseReply(redisReply* r) {
@@ -47,8 +46,19 @@ namespace nodeaddon {
             }
             return scope.Escape(a);
         }
-
         return scope.Escape(Nan::Null());
+    }
+
+    void NodeAddon::BindCall(const Nan::FunctionCallbackInfo<Value>& info, Local<Value> cb, char* fmt) {
+        NodeAddon* addon = Nan::ObjectWrap::Unwrap<NodeAddon>(info.Holder());
+        Local<Function> callback = Local<Function>::Cast(cb);
+        //printf("%s\n", fmt);
+        CallBinding* binding = new CallBinding(addon, callback); 
+        // char* command; \
+        // asprintf(&command, fmt, ##__VA_ARGS__); 
+        redisAsyncCommand(addon->context, RedisCallback, (void*)binding, fmt); 
+        //free(command);
+        //BIND_CALL(addon, callback, fmt);
     }
 
     void NodeAddon::RedisCallback(redisAsyncContext* c, void* r, void* privdata) {
@@ -60,8 +70,8 @@ namespace nodeaddon {
             return;
         }
         int argc = 2;
-        Local<Value> argv[argc];
-        if (reply->type == REDIS_ERR) {
+        Local<Value> argv[argc]; 
+        if (reply->type == REDIS_REPLY_ERROR) {
             argv[0] = Nan::New<String>(reply->str).ToLocalChecked();
             argv[1] = Nan::Null();
         } else {
@@ -69,6 +79,7 @@ namespace nodeaddon {
             argv[1] = ParseReply(reply);
         }
         binding->callback->Call(argc, argv);
+        if (c->c.flags & REDIS_SUBSCRIBED || c->c.flags & REDIS_MONITORING) return;
         delete binding;
     }
 
@@ -117,6 +128,7 @@ namespace nodeaddon {
             cb.Call(argc, argv);
         } else {
             context->data = (void*)this;
+            redisLibuvAttach(context, uv_default_loop());
             if (_onConnect->IsFunction()) {
                 onConnect = new Nan::Callback(Local<Function>::Cast(_onConnect));
                 redisAsyncSetConnectCallback(context, ConnectCallback);
@@ -125,7 +137,6 @@ namespace nodeaddon {
                 onDisconnect = new Nan::Callback(Local<Function>::Cast(_onDisconnect));
                 redisAsyncSetDisconnectCallback(context, DisconnectCallback);
             }
-            redisLibuvAttach(context, uv_default_loop());
         }
     }
 
@@ -133,7 +144,6 @@ namespace nodeaddon {
         if (onDisconnect != nullptr) delete onDisconnect;
         if (onConnect != nullptr) delete onConnect;
         redisAsyncDisconnect(context);
-        redisAsyncFree(context);
     }
 }
 
