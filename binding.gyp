@@ -3,6 +3,8 @@
     {
       'target_name': 'addon',
       'sources': [ 
+          './src/init.cc',
+          './src/parser.cc',
           './src/addon.cc',
           './hiredis/hiredis.c',
           './hiredis/net.c',

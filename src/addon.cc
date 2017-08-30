@@ -3,6 +3,7 @@
 #include "../hiredis/adapters/libuv.h"
 #include "../include/addon.h"
 #include "../include/call_binding.h"
+#include "../include/parser.h"
 #include <iostream>
 
 namespace nodeaddon {
@@ -27,26 +28,6 @@ namespace nodeaddon {
         ASSERT_STRING("Call", 0);
         ASSERT_FUNCTION("Call", 1);
         BindCall(info, info[1], STR_ARG(0));
-    }
-
-    Local<Value> NodeAddon::ParseReply(redisReply* r) {
-        Nan::EscapableHandleScope scope;
-        Local<Value> reply;
-
-        if (r->type == REDIS_REPLY_NIL) {
-            return scope.Escape(Nan::Null());
-        } else if (r->type == REDIS_REPLY_INTEGER) {
-            return scope.Escape(Nan::New<Number>(r->integer));
-        } else if (r->type == REDIS_REPLY_STRING || r->type == REDIS_REPLY_STATUS) {
-            return scope.Escape(Nan::New<String>(r->str, r->len).ToLocalChecked());
-        } else if (r->type == REDIS_REPLY_ARRAY) {
-            Local<Array> a = Nan::New<Array>();
-            for (uint32_t i = 0; i < r->elements; i++) {
-                a->Set(i, ParseReply(r->element[i]));
-            }
-            return scope.Escape(a);
-        }
-        return scope.Escape(Nan::Null());
     }
 
     void NodeAddon::BindCall(const Nan::FunctionCallbackInfo<Value>& info, Local<Value> cb, char* fmt) {
@@ -76,7 +57,7 @@ namespace nodeaddon {
             argv[1] = Nan::Null();
         } else {
             argv[0] = Nan::Null();
-            argv[1] = ParseReply(reply);
+            argv[1] = Parser::ParseReply(reply);
         }
         binding->callback->Call(argc, argv);
         if (c->c.flags & REDIS_SUBSCRIBED || c->c.flags & REDIS_MONITORING) return;
@@ -146,9 +127,3 @@ namespace nodeaddon {
         redisAsyncDisconnect(context);
     }
 }
-
-NAN_MODULE_INIT(init) {
-    nodeaddon::NodeAddon::Initialize(target);
-}
-
-NODE_MODULE(addon, init)
