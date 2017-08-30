@@ -7,7 +7,7 @@ Currently supports only node v8.x.
 node-gyp should be installed
 
 ```sh
-    $ npm install git+https://github.com/paulkarabilo/adn.git
+    $ npm install git+https://github.com/paulkarabilo/node-redis-native.git
 ```
 
 ```javascript
