@@ -105,7 +105,8 @@ namespace nodeaddon {
         if (context->err && onError->IsFunction()) {
             Nan::Callback cb(Local<Function>::Cast(onError));
             int argc = 1;
-            Local<Value> argv[argc] {Nan::New<String>(context->errstr).ToLocalChecked()};
+            Local<Value> argv[argc];
+            argv[0] = Nan::New<String>(context->errstr).ToLocalChecked();
             cb.Call(argc, argv);
         } else {
             context->data = (void*)this;
