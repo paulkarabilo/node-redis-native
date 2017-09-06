@@ -5,6 +5,7 @@
       'sources': [ 
           './src/init.cc',
           './src/parser.cc',
+          './src/command.cc',
           './src/addon.cc',
           './hiredis/hiredis.c',
           './hiredis/net.c',
