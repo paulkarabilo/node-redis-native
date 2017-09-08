@@ -41,8 +41,8 @@ namespace nodeaddon {
             callback->Call(info.This(), 1, argv);
         } else {
             CallBinding* binding = new CallBinding(addon, callback);
-            redisAsyncCommand(addon->context, RedisCallback, (void*)binding, command); 
-            free(command);
+            redisAsyncCommand(addon->context, RedisCallback, (void*)binding, command);
+            delete command;
         }
     }
 
