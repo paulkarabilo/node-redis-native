@@ -6,7 +6,7 @@
           './src/init.cc',
           './src/parser.cc',
           './src/command.cc',
-          './src/addon.cc',
+          './src/client.cc',
           './hiredis/hiredis.c',
           './hiredis/net.c',
           './hiredis/sds.c',

@@ -1,7 +1,7 @@
 #include "../hiredis/hiredis.h"
 #include "../hiredis/async.h"
 #include "../hiredis/adapters/libuv.h"
-#include "../include/addon.h"
+#include "../include/client.h"
 #include "../include/call_binding.h"
 #include "../include/parser.h"
 #include "../include/command.h"
@@ -55,13 +55,31 @@ namespace nodeaddon {
             return;
         }
         int argc = 2;
-        Local<Value> argv[argc]; 
+        Local<Value> argv[argc];
         if (reply->type == REDIS_REPLY_ERROR) {
             argv[0] = Nan::New<String>(reply->str).ToLocalChecked();
             argv[1] = Nan::Null();
         } else {
+            Local<Value> parsedReply = Parser::ParseReply(reply);
+            if (parsedReply->IsArray()) {
+                Local<Array> replyArray = Local<Array>::Cast(parsedReply);
+                if (replyArray->Length() == 3) {
+                    Local<Value> firstValue = replyArray->Get(Nan::New<Number>(0));
+                    if (firstValue->IsString()) {
+                        Nan::Utf8String firstString(firstValue);
+                        char* firstValueChar = *firstString;
+                        NodeAddon* addon = binding->addon;
+                        if (strncasecmp(firstValueChar, "subscribe", 9) == 0 &&
+                                !addon->onSubscribe->IsEmpty()) {
+                            Local<Value> argv[1] = {Nan::New<Number>(0)};
+                            binding->addon->onSubscribe->Call(1, argv);
+                            return;
+                        }
+                    }
+                }
+            }
             argv[0] = Nan::Null();
-            argv[1] = Parser::ParseReply(reply);
+            argv[1] = parsedReply;
         }
         binding->callback->Call(argc, argv);
         if (c->c.flags & REDIS_SUBSCRIBED || c->c.flags & REDIS_MONITORING) return;
@@ -92,6 +110,7 @@ namespace nodeaddon {
         Local<Value> _port = Nan::Get(options, Nan::New<String>("port").ToLocalChecked()).ToLocalChecked();
         Local<Value> _onConnect = Nan::Get(options, Nan::New<String>("onConnect").ToLocalChecked()).ToLocalChecked();
         Local<Value> _onDisconnect = Nan::Get(options, Nan::New<String>("onDisconnect").ToLocalChecked()).ToLocalChecked();
+        Local<Value> _onSubscribe = Nan::Get(options, Nan::New<String>("onSubscribe").ToLocalChecked()).ToLocalChecked();
         Local<Value> onError = Nan::Get(options, Nan::New<String>("onError").ToLocalChecked()).ToLocalChecked();
         if (_host->IsString()) {
             Nan::Utf8String host_val(_host);
@@ -122,6 +141,9 @@ namespace nodeaddon {
             if (_onDisconnect->IsFunction()) {
                 onDisconnect = new Nan::Callback(Local<Function>::Cast(_onDisconnect));
                 redisAsyncSetDisconnectCallback(context, DisconnectCallback);
+            }
+            if (_onSubscribe->IsFunction()) {
+                onSubscribe = new Nan::Callback(Local<Function>::Cast(_onSubscribe));
             }
         }
     }

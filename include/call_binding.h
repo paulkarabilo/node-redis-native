@@ -2,7 +2,7 @@
 #define NODE_ADDON_CALL_BINDING_H
 
 #include <uv.h>
-#include "./addon.h"
+#include "./client.h"
 
 namespace nodeaddon {
     typedef struct CallBinding {
