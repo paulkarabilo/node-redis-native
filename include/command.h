@@ -1,10 +1,5 @@
-
-
-#ifndef _COMMAND_H
-#define _COMMAND_H
-
-
-using namespace v8;
+#ifndef _NODEADDON_COMMAND_H
+#define _NODEADDON_COMMAND_H
 
 namespace nodeaddon {
     class Command {

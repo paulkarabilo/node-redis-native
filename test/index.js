@@ -5,7 +5,7 @@ chai.should();
 describe('Redis Addon', function() {
     var client;
     before(function () {
-        client = new r.Client();
+        client = new r.Client({host: '127.0.0.1', port: 6379});
     });
     it("Calls Ping", function (done) {
         client.call("ping", function (err, reply) {

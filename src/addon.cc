@@ -4,6 +4,7 @@
 #include "../include/addon.h"
 #include "../include/call_binding.h"
 #include "../include/parser.h"
+#include "../include/command.h"
 #include <iostream>
 
 namespace nodeaddon {
@@ -32,14 +33,17 @@ namespace nodeaddon {
 
     void NodeAddon::BindCall(const Nan::FunctionCallbackInfo<Value>& info, Local<Value> cb, char* fmt) {
         NodeAddon* addon = Nan::ObjectWrap::Unwrap<NodeAddon>(info.Holder());
-        Local<Function> callback = Local<Function>::Cast(cb);
-        //printf("%s\n", fmt);
-        CallBinding* binding = new CallBinding(addon, callback); 
-        // char* command; \
-        // asprintf(&command, fmt, ##__VA_ARGS__); 
-        redisAsyncCommand(addon->context, RedisCallback, (void*)binding, fmt); 
-        //free(command);
-        //BIND_CALL(addon, callback, fmt);
+        Local<Function> callback = Local<Function>::Cast(cb); 
+        char* command = Command::Build(fmt);
+        if (command == NULL) {
+            Local<Value> argv[1];
+            argv[0] = Nan::New<String>("Failed to create command").ToLocalChecked();
+            callback->Call(info.This(), 1, argv);
+        } else {
+            CallBinding* binding = new CallBinding(addon, callback);
+            redisAsyncCommand(addon->context, RedisCallback, (void*)binding, command); 
+            free(command);
+        }
     }
 
     void NodeAddon::RedisCallback(redisAsyncContext* c, void* r, void* privdata) {
