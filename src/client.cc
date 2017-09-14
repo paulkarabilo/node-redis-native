@@ -82,7 +82,8 @@ namespace nodeaddon {
                         char* firstValueChar = *firstString;
                         if (strncasecmp(firstValueChar, "subscribe", 9) == 0) {
                             if (binding->addon->onSubscribe != NULL) {
-                                Local<Value> argv[1] = {Nan::New<Number>(0)};
+                                Local<Value> argv[1];
+                                argv[0] = parsedReply;
                                 binding->addon->onSubscribe->Call(1, argv);
                             }
                             return;
