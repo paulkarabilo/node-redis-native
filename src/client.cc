@@ -39,6 +39,16 @@ namespace nodeaddon {
             Local<Value> argv[1];
             argv[0] = Nan::New<String>("Failed to create command").ToLocalChecked();
             callback->Call(info.This(), 1, argv);
+        } else if (addon->context->c.flags & REDIS_SUBSCRIBED && 
+                !Command::Is(command, "subscribe") &&
+                !Command::Is(command, "unsubscribe")) {
+            Local<Value> argv[1];
+            argv[0] = Nan::New<String>("Redis client in subscription mode, can only run subscribe/unsubscribe commands").ToLocalChecked();
+            callback->Call(info.This(), 1, argv);
+        } else if (addon->context->c.flags & REDIS_MONITORING) {
+            Local<Value> argv[1];
+            argv[0] = Nan::New<String>("Redis client in monitoring mode").ToLocalChecked();
+            callback->Call(info.This(), 1, argv);
         } else {
             CallBinding* binding = new CallBinding(addon, callback);
             redisAsyncCommand(addon->context, RedisCallback, (void*)binding, command);
@@ -69,10 +79,11 @@ namespace nodeaddon {
                         Nan::Utf8String firstString(firstValue);
                         char* firstValueChar = *firstString;
                         NodeAddon* addon = binding->addon;
-                        if (strncasecmp(firstValueChar, "subscribe", 9) == 0 &&
-                                !addon->onSubscribe->IsEmpty()) {
-                            Local<Value> argv[1] = {Nan::New<Number>(0)};
-                            binding->addon->onSubscribe->Call(1, argv);
+                        if (strncasecmp(firstValueChar, "subscribe", 9) == 0) {
+                            if (addon->onSubscribe != NULL) {
+                                Local<Value> argv[1] = {Nan::New<Number>(0)};
+                                binding->addon->onSubscribe->Call(1, argv);
+                            }
                             return;
                         }
                     }
@@ -89,7 +100,7 @@ namespace nodeaddon {
     void NodeAddon::ConnectCallback(const redisAsyncContext* c, int status) {
         Nan::HandleScope scope;
         NodeAddon* addon = static_cast<NodeAddon*>(c->data);
-        if (addon->onConnect != nullptr) {
+        if (addon->onConnect != NULL) {
             Local<Value> argv[1] = {Nan::New<Number>(status)};
             addon->onConnect->Call(1, argv);
         }
@@ -98,7 +109,7 @@ namespace nodeaddon {
     void NodeAddon::DisconnectCallback(const redisAsyncContext* c, int status) {
         Nan::HandleScope scope;
         NodeAddon* addon = static_cast<NodeAddon*>(c->data);
-        if (addon->onDisconnect != nullptr) {
+        if (addon->onDisconnect != NULL) {
             Local<Value> argv[1] = {Nan::New<Number>(status)};
             addon->onDisconnect->Call(1, argv);
         }
@@ -137,13 +148,19 @@ namespace nodeaddon {
             if (_onConnect->IsFunction()) {
                 onConnect = new Nan::Callback(Local<Function>::Cast(_onConnect));
                 redisAsyncSetConnectCallback(context, ConnectCallback);
+            } else {
+                onConnect = NULL;
             }
             if (_onDisconnect->IsFunction()) {
                 onDisconnect = new Nan::Callback(Local<Function>::Cast(_onDisconnect));
                 redisAsyncSetDisconnectCallback(context, DisconnectCallback);
+            } else {
+                onDisconnect = NULL;
             }
             if (_onSubscribe->IsFunction()) {
                 onSubscribe = new Nan::Callback(Local<Function>::Cast(_onSubscribe));
+            } else {
+                onSubscribe = NULL;
             }
         }
     }

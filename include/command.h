@@ -5,6 +5,7 @@ namespace nodeaddon {
     class Command {
     public:
         static char* Build(const char* fmt...);
+        static bool Is(const char* input, const char* cmd);
     };
 }
 
