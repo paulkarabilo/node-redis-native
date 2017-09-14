@@ -45,10 +45,12 @@ namespace nodeaddon {
             Local<Value> argv[1];
             argv[0] = Nan::New<String>("Redis client in subscription mode, can only run subscribe/unsubscribe commands").ToLocalChecked();
             callback->Call(info.This(), 1, argv);
+            delete command;
         } else if (addon->context->c.flags & REDIS_MONITORING) {
             Local<Value> argv[1];
             argv[0] = Nan::New<String>("Redis client in monitoring mode").ToLocalChecked();
             callback->Call(info.This(), 1, argv);
+            delete command;
         } else {
             CallBinding* binding = new CallBinding(addon, callback);
             redisAsyncCommand(addon->context, RedisCallback, (void*)binding, command);
@@ -78,9 +80,8 @@ namespace nodeaddon {
                     if (firstValue->IsString()) {
                         Nan::Utf8String firstString(firstValue);
                         char* firstValueChar = *firstString;
-                        NodeAddon* addon = binding->addon;
                         if (strncasecmp(firstValueChar, "subscribe", 9) == 0) {
-                            if (addon->onSubscribe != NULL) {
+                            if (binding->addon->onSubscribe != NULL) {
                                 Local<Value> argv[1] = {Nan::New<Number>(0)};
                                 binding->addon->onSubscribe->Call(1, argv);
                             }
