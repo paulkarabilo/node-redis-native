@@ -3,7 +3,10 @@
     {
       'target_name': 'addon',
       'sources': [ 
-          './src/addon.cc',
+          './src/init.cc',
+          './src/parser.cc',
+          './src/command.cc',
+          './src/client.cc',
           './hiredis/hiredis.c',
           './hiredis/net.c',
           './hiredis/sds.c',
