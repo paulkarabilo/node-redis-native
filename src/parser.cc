@@ -1,7 +1,11 @@
 #include <v8.h>
 #include "../include/parser.h"
 
-namespace nodeaddon {
+namespace node_redis_addon {
+    /**
+     * Convert redis command reply into a javascript 
+     * runtime object that can be passed out of scope 
+     */
     Local<Value> Parser::ParseReply(redisReply* r) {
         Nan::EscapableHandleScope scope;
         Local<Value> reply;

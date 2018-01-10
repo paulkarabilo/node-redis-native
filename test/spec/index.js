@@ -1,11 +1,14 @@
-var r = require('../index.js');
+var r = require('../../index.js');
 var chai = require('chai');
 chai.should();
 
 describe('Redis Addon', function() {
     var client;
     before(function () {
-        client = new r.Client({host: '127.0.0.1', port: 6379});
+        client = new r.Client({
+            host: process.env.REDIS_HOST || 'localhost', 
+            port: process.env.REDIS_PORT || 6379
+        });
     });
     it("Calls Ping", function (done) {
         client.call("ping", function (err, reply) {

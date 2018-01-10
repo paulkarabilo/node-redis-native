@@ -1,7 +1,7 @@
-#ifndef _NODEADDON_COMMAND_H
-#define _NODEADDON_COMMAND_H
+#ifndef _NODE_REDIS_ADDON_COMMAND_H
+#define _NODE_REDIS_ADDON_COMMAND_H
 
-namespace nodeaddon {
+namespace node_redis_addon {
     class Command {
     public:
         static char* Build(const char* fmt...);

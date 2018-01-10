@@ -1,15 +1,15 @@
-#ifndef NODE_ADDON_CALL_BINDING_H
-#define NODE_ADDON_CALL_BINDING_H
+#ifndef _NODE_REDIS_ADDON_CALL_BINDING_H
+#define _NODE_REDIS_ADDON_CALL_BINDING_H
 
 #include <uv.h>
 #include "./client.h"
 
-namespace nodeaddon {
+namespace node_redis_addon {
     typedef struct CallBinding {
-        NodeAddon* addon;
+        NodeRedisAddon* addon;
         Nan::Callback* callback;
         CallBinding();
-        CallBinding(NodeAddon* a, Local<Function> cb) {
+        CallBinding(NodeRedisAddon* a, Local<Function> cb) {
             addon = a;
             callback = new Nan::Callback(cb);
         };

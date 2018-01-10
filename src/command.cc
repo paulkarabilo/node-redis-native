@@ -3,7 +3,7 @@
 #include <cstdio>
 #include <cstring>
 
-namespace nodeaddon {
+namespace node_redis_addon {
     char* Command::Build(const char* fmt...) {
         va_list args;
         va_start(args, fmt);
@@ -19,12 +19,14 @@ namespace nodeaddon {
         if (size < 0) return NULL;
         return cmd;
     }
+    /**
+     * Checks if a string is a certain redis command
+     */
     bool Command::Is(const char* input, const char* cmd) {
-        unsigned int fns = 0; //location of first non-space character;
-        size_t cl = strlen(cmd); //command length
-        size_t il = strlen(input); // full input length
+        unsigned int fns = 0;
+        size_t cl = strlen(cmd);
+        size_t il = strlen(input);
 
-        //in case input has leading whitespace need to skip
         while(input[fns] == ' ') fns++;
         return strncasecmp((char*)(input + fns), cmd, cl) == 0;
     }

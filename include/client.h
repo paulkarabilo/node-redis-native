@@ -1,5 +1,5 @@
-#ifndef NODE_ADDON_H
-#define NODE_ADDON_H
+#ifndef _NODE_REDIS_ADDON_CLIENT_H
+#define _NODE_REDIS_ADDON_CLIENT_H
 
 #include <nan.h>
 #include "./hiredis/async.h"
@@ -26,20 +26,17 @@ using namespace node;
 
 #define ASSERT_FUNCTION(name, i) ASSERT_TYPE(name, i, Function)
 
-#define BIND_CALL(addon, callback, fmt, ...) \
-    CallBinding* binding = new CallBinding(addon, callback); \
-    char* command; \
-    asprintf(&command, fmt, ##__VA_ARGS__); \
-    redisAsyncCommand(addon->context, RedisCallback, (void*)binding, (command)); \
-    free(command);
-
+//convert param that comes from javascript into char*
 #define STR_ARG(n) (*(Nan::Utf8String)(info[(n)]))
 
-namespace nodeaddon {
-    class NodeAddon : public Nan::ObjectWrap {
+#define DEFAULT_REDIS_PORT 6379
+#define DEFAULT_REDIS_HOST "localhost"
+
+namespace node_redis_addon {
+    class NodeRedisAddon : public Nan::ObjectWrap {
         public:
             static NAN_MODULE_INIT(Initialize);
-            ~NodeAddon();
+            ~NodeRedisAddon();
         private:
             redisAsyncContext* context;
             char* host;
@@ -53,7 +50,7 @@ namespace nodeaddon {
             static void DisconnectCallback(const redisAsyncContext* c, int status);
             static bool CheckSubscribeCallback(Local<Value> callbackReply);
             static Local<Value> ParseReply(redisReply *r);
-            NodeAddon(Local<Object>);
+            NodeRedisAddon(Local<Object>);
             static NAN_METHOD(New);
             static NAN_METHOD(Call);
     };
