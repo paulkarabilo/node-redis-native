@@ -12,6 +12,7 @@ namespace node_redis_addon {
         Local<FunctionTemplate> client = Nan::New<FunctionTemplate>(New);
         client->InstanceTemplate()->SetInternalFieldCount(1);
         Nan::SetPrototypeMethod(client, "call", Call);
+        Nan::SetPrototypeMethod(client, "disconnect", Disconnect);
         Nan::Set(target, Nan::New("Client").ToLocalChecked(), Nan::GetFunction(client).ToLocalChecked());
     }
 
@@ -27,11 +28,22 @@ namespace node_redis_addon {
         info.GetReturnValue().Set(info.This());
     }
 
+    /**
+     * Execute redis command.
+     * Expects full redis command as a string and callback function
+     */
     NAN_METHOD(NodeRedisAddon::Call) {
         ASSERT_NARGS("Call", 2);
         ASSERT_STRING("Call", 0);
         ASSERT_FUNCTION("Call", 1);
         BindCall(info, info[1], STR_ARG(0));
+    }
+
+    NAN_METHOD(NodeRedisAddon::Disconnect) {
+        NodeRedisAddon* addon = Nan::ObjectWrap::Unwrap<NodeRedisAddon>(info.Holder());
+        redisAsyncDisconnect(addon->context);
+	    addon->context = NULL;
+	    info.GetReturnValue().Set(Nan::Undefined());
     }
 
     /**

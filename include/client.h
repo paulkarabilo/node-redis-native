@@ -53,6 +53,7 @@ namespace node_redis_addon {
             NodeRedisAddon(Local<Object>);
             static NAN_METHOD(New);
             static NAN_METHOD(Call);
+            static NAN_METHOD(Disconnect);
     };
 }
 #endif
