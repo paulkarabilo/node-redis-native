@@ -5,6 +5,10 @@
   "main": "index.js",
   "private": true,
   "scripts": {
+    "build": "node-gyp build",
+    "rebuild": "node-gyp rebuild",
+    "build:debug": "node-gyp build -debug",
+    "rebuild:debug": "node-gyp rebuild -debug",
     "test": "mocha test/spec"
   },
   "author": "",

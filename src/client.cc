@@ -15,6 +15,9 @@ namespace node_redis_addon {
         Nan::Set(target, Nan::New("Client").ToLocalChecked(), Nan::GetFunction(client).ToLocalChecked());
     }
 
+    /**
+     * Javascript client constructor wrapper
+     */
     NAN_METHOD(NodeRedisAddon::New) {
         Local<Object> options = (info.Length() == 1 && info[0]->IsObject()) ?
             info[0]->ToObject() :
@@ -106,10 +109,15 @@ namespace node_redis_addon {
             argv[1] = parsedReply;
         }
         binding->callback->Call(argc, argv);
+        //binding will be reused in ongoing pubsub/monitor callbacks
         if (c->c.flags & REDIS_SUBSCRIBED || c->c.flags & REDIS_MONITORING) return;
         delete binding;
     }
 
+    /**
+     * Successful connect callback wrapper.
+     * Status should equal 0 (REDIS_OK)
+     */
     void NodeRedisAddon::ConnectCallback(const redisAsyncContext* c, int status) {
         Nan::HandleScope scope;
         NodeRedisAddon* addon = static_cast<NodeRedisAddon*>(c->data);
@@ -119,6 +127,10 @@ namespace node_redis_addon {
         }
     }
 
+    /**
+     * Client disconnect callback wrapper
+     * if triggered by QUIT command , then status code is -1 (REDIS_ERR)
+     */
     void NodeRedisAddon::DisconnectCallback(const redisAsyncContext* c, int status) {
         Nan::HandleScope scope;
         NodeRedisAddon* addon = static_cast<NodeRedisAddon*>(c->data);
@@ -128,7 +140,9 @@ namespace node_redis_addon {
         }
     }
 
-
+    /**
+     * Javascript addon object initializer
+     */
     NodeRedisAddon::NodeRedisAddon(Local<Object> options) : Nan::ObjectWrap() {
         Nan::HandleScope scope;
         Local<Value> _host = Nan::Get(options, Nan::New<String>("host").ToLocalChecked()).ToLocalChecked();
@@ -141,14 +155,15 @@ namespace node_redis_addon {
             Nan::Utf8String host_val(_host);
             host = *host_val;
         } else {
-            host = (char*)"localhost";
+            host = (char*)DEFAULT_REDIS_HOST;
         }
         if (_port->IsNumber()) {
             port = _port->IntegerValue();
         } else {
-            port = 6379;
+            port = DEFAULT_REDIS_PORT;
         }
 
+        //try to create redis async client
         context = redisAsyncConnect(host, port);
         if (context->err && onError->IsFunction()) {
             Nan::Callback cb(Local<Function>::Cast(onError));
@@ -157,7 +172,10 @@ namespace node_redis_addon {
             argv[0] = Nan::New<String>(context->errstr).ToLocalChecked();
             cb.Call(argc, argv);
         } else {
+            //if client created successfully, store reference to 
+            //addon object in its data property.
             context->data = (void*)this;
+            //attach async client to main node event loop
             redisLibuvAttach(context, uv_default_loop());
             if (_onConnect->IsFunction()) {
                 onConnect = new Nan::Callback(Local<Function>::Cast(_onConnect));
