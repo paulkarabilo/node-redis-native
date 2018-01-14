@@ -9,7 +9,8 @@
     "rebuild": "node-gyp rebuild",
     "build:debug": "node-gyp build -debug",
     "rebuild:debug": "node-gyp rebuild -debug",
-    "test": "mocha test/spec"
+    "test": "mocha test/spec",
+    "test:debug": "mocha --debug test/spec"
   },
   "author": "",
   "license": "WTFPL",

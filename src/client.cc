@@ -42,7 +42,6 @@ namespace node_redis_addon {
     NAN_METHOD(NodeRedisAddon::Disconnect) {
         NodeRedisAddon* addon = Nan::ObjectWrap::Unwrap<NodeRedisAddon>(info.Holder());
         redisAsyncDisconnect(addon->context);
-	    addon->context = NULL;
 	    info.GetReturnValue().Set(Nan::Undefined());
     }
 
@@ -149,6 +148,7 @@ namespace node_redis_addon {
         if (addon->onDisconnect != NULL) {
             Local<Value> argv[1] = {Nan::New<Number>(status)};
             addon->onDisconnect->Call(1, argv);
+            std::cout << "Disconnect callback called\n";
         }
     }
 
@@ -210,6 +210,7 @@ namespace node_redis_addon {
     }
 
     NodeRedisAddon::~NodeRedisAddon() {
+        std::cout << "Destroying client\n";
         if (onDisconnect != nullptr) delete onDisconnect;
         if (onConnect != nullptr) delete onConnect;
         redisAsyncDisconnect(context);
