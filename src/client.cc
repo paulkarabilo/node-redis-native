@@ -5,7 +5,6 @@
 #include "../include/call_binding.h"
 #include "../include/parser.h"
 #include "../include/command.h"
-#include <iostream>
 
 namespace node_redis_addon {
     NAN_MODULE_INIT(NodeRedisAddon::Initialize) {
@@ -148,7 +147,6 @@ namespace node_redis_addon {
         if (addon->onDisconnect != NULL) {
             Local<Value> argv[1] = {Nan::New<Number>(status)};
             addon->onDisconnect->Call(1, argv);
-            std::cout << "Disconnect callback called\n";
         }
     }
 
@@ -210,7 +208,6 @@ namespace node_redis_addon {
     }
 
     NodeRedisAddon::~NodeRedisAddon() {
-        std::cout << "Destroying client\n";
         if (onDisconnect != nullptr) delete onDisconnect;
         if (onConnect != nullptr) delete onConnect;
         redisAsyncDisconnect(context);
