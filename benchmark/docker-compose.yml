@@ -1,0 +1,12 @@
+version: '3'
+services:
+  addon:
+    build: ..
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    command: npm run bench
+    depends_on: 
+      - redis
+  redis:
+    image: "redis:alpine"
