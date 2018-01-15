@@ -5,16 +5,16 @@ var fastRedis = require('redis-fast-driver');
 
 console.log("STARTING BENCHMARK");
 var nativeClient = new addon.Client({
-    host: process.env.HOST || 'localhost',
-    port: process.env.PORT || 6379
+    host: process.env.REDIS_HOST || 'localhost',
+    port: process.env.REDIS_PORT || 6379
 }); 
 var jsClient = jsRedis.createClient({
-    host: process.env.HOST || 'localhost',
-    port: process.env.PORT || 6379
+    host: process.env.REDIS_HOST || 'localhost',
+    port: process.env.REDIS_PORT || 6379
 });
 var fastClient = new fastRedis({
-    host: process.env.HOST || 'localhost',
-    port: process.env.PORT || 6379
+    host: process.env.REDIS_HOST || 'localhost',
+    port: process.env.REDIS_PORT || 6379
 });
 var suite = new Benchmark.Suite;
 var opts = {defer: true}
