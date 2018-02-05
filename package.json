@@ -5,7 +5,13 @@
   "main": "index.js",
   "private": true,
   "scripts": {
-    "test": "mocha test/spec"
+    "build": "node-gyp build",
+    "rebuild": "node-gyp rebuild",
+    "build:debug": "node-gyp build -debug",
+    "rebuild:debug": "node-gyp rebuild -debug",
+    "test": "mocha test/spec",
+    "test:debug": "mocha --debug test/spec",
+    "bench": "node benchmark"
   },
   "author": "",
   "license": "WTFPL",
