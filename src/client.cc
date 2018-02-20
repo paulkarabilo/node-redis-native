@@ -7,6 +7,7 @@
 #include "../include/command.h"
 
 namespace node_redis_addon {
+
     NAN_MODULE_INIT(NodeRedisAddon::Initialize) {
         Local<FunctionTemplate> client = Nan::New<FunctionTemplate>(New);
         client->InstanceTemplate()->SetInternalFieldCount(1);
@@ -40,7 +41,11 @@ namespace node_redis_addon {
 
     NAN_METHOD(NodeRedisAddon::Disconnect) {
         NodeRedisAddon* addon = Nan::ObjectWrap::Unwrap<NodeRedisAddon>(info.Holder());
-        redisAsyncDisconnect(addon->context);
+        if (addon->connected) {
+            redisAsyncDisconnect(addon->context);
+        } else {
+            addon->shouldDisconnect = true;
+        }
 	    info.GetReturnValue().Set(Nan::Undefined());
     }
 
@@ -124,6 +129,12 @@ namespace node_redis_addon {
         delete binding;
     }
 
+    void NodeRedisAddon::IdleDisconnect(uv_idle_t* handle) {
+        NodeRedisAddon* addon = reinterpret_cast<NodeRedisAddon*>(handle->data);
+        redisAsyncDisconnect(addon->context);
+        uv_idle_stop(handle);
+    }
+
     /**
      * Successful connect callback wrapper.
      * Status should equal 0 (REDIS_OK)
@@ -134,6 +145,15 @@ namespace node_redis_addon {
         if (addon->onConnect != NULL) {
             Local<Value> argv[1] = {Nan::New<Number>(status)};
             addon->onConnect->Call(1, argv);
+        }
+        if (addon->shouldDisconnect) {
+            uv_idle_t idler;
+            idler.data = reinterpret_cast<void*>(addon);
+            uv_idle_init(uv_default_loop(), &idler);
+            uv_idle_start(&idler, IdleDisconnect);
+            uv_run(uv_default_loop(), UV_RUN_ONCE);
+        } else {
+            addon->connected = true;
         }
     }
 
@@ -155,6 +175,8 @@ namespace node_redis_addon {
      */
     NodeRedisAddon::NodeRedisAddon(Local<Object> options) : Nan::ObjectWrap() {
         Nan::HandleScope scope;
+        connected = false;
+        shouldDisconnect = false;
         Local<Value> _host = Nan::Get(options, Nan::New<String>("host").ToLocalChecked()).ToLocalChecked();
         Local<Value> _port = Nan::Get(options, Nan::New<String>("port").ToLocalChecked()).ToLocalChecked();
         Local<Value> _onConnect = Nan::Get(options, Nan::New<String>("onConnect").ToLocalChecked()).ToLocalChecked();
@@ -187,15 +209,15 @@ namespace node_redis_addon {
             context->data = (void*)this;
             //attach async client to main node event loop
             redisLibuvAttach(context, uv_default_loop());
+            redisAsyncSetConnectCallback(context, ConnectCallback);
+            redisAsyncSetDisconnectCallback(context, DisconnectCallback);
             if (_onConnect->IsFunction()) {
                 onConnect = new Nan::Callback(Local<Function>::Cast(_onConnect));
-                redisAsyncSetConnectCallback(context, ConnectCallback);
             } else {
                 onConnect = NULL;
             }
             if (_onDisconnect->IsFunction()) {
                 onDisconnect = new Nan::Callback(Local<Function>::Cast(_onDisconnect));
-                redisAsyncSetDisconnectCallback(context, DisconnectCallback);
             } else {
                 onDisconnect = NULL;
             }

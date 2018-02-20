@@ -41,9 +41,12 @@ namespace node_redis_addon {
             redisAsyncContext* context;
             char* host;
             uint16_t port;
+            bool connected;
+            bool shouldDisconnect;
             Nan::Callback* onConnect;
             Nan::Callback* onDisconnect;
             Nan::Callback* onSubscribe;
+            static void IdleDisconnect(uv_idle_t* handle);
             static void RedisCallback(redisAsyncContext* c, void* r, void* privdata);
             static void BindCall(const Nan::FunctionCallbackInfo<Value>& info, Local<Value> cb, char* fmt);
             static void ConnectCallback(const redisAsyncContext* c, int status);

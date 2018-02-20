@@ -5,6 +5,7 @@
   "main": "index.js",
   "private": true,
   "scripts": {
+    "configure": "node-gyp configure",
     "build": "node-gyp build",
     "rebuild": "node-gyp rebuild",
     "build:debug": "node-gyp build -debug",
