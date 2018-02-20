@@ -24,7 +24,7 @@ describe('Basic Connect Test', function() {
     //     });
     // });
 
-    it("Disconnects from existing server with status=OK", function (done) {
+    it("Disconnects with status=OK", function (done) {
         var client = new r.Client({
             host: process.env.REDIS_HOST || 'localhost', 
             port: process.env.REDIS_PORT || 6379,
