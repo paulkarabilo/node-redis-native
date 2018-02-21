@@ -41,11 +41,7 @@ namespace node_redis_addon {
 
     NAN_METHOD(NodeRedisAddon::Disconnect) {
         NodeRedisAddon* addon = Nan::ObjectWrap::Unwrap<NodeRedisAddon>(info.Holder());
-        if (addon->connected) {
-            redisAsyncDisconnect(addon->context);
-        } else {
-            addon->shouldDisconnect = true;
-        }
+        redisAsyncDisconnect(addon->context);
 	    info.GetReturnValue().Set(Nan::Undefined());
     }
 
@@ -129,12 +125,6 @@ namespace node_redis_addon {
         delete binding;
     }
 
-    void NodeRedisAddon::IdleDisconnect(uv_idle_t* handle) {
-        NodeRedisAddon* addon = reinterpret_cast<NodeRedisAddon*>(handle->data);
-        redisAsyncDisconnect(addon->context);
-        uv_idle_stop(handle);
-    }
-
     /**
      * Successful connect callback wrapper.
      * Status should equal 0 (REDIS_OK)
@@ -146,15 +136,7 @@ namespace node_redis_addon {
             Local<Value> argv[1] = {Nan::New<Number>(status)};
             addon->onConnect->Call(1, argv);
         }
-        if (addon->shouldDisconnect) {
-            uv_idle_t idler;
-            idler.data = reinterpret_cast<void*>(addon);
-            uv_idle_init(uv_default_loop(), &idler);
-            uv_idle_start(&idler, IdleDisconnect);
-            uv_run(uv_default_loop(), UV_RUN_ONCE);
-        } else {
-            addon->connected = true;
-        }
+        addon->connected = true;
     }
 
     /**
@@ -209,8 +191,6 @@ namespace node_redis_addon {
             context->data = (void*)this;
             //attach async client to main node event loop
             redisLibuvAttach(context, uv_default_loop());
-            redisAsyncSetConnectCallback(context, ConnectCallback);
-            redisAsyncSetDisconnectCallback(context, DisconnectCallback);
             if (_onConnect->IsFunction()) {
                 onConnect = new Nan::Callback(Local<Function>::Cast(_onConnect));
             } else {
@@ -221,6 +201,8 @@ namespace node_redis_addon {
             } else {
                 onDisconnect = NULL;
             }
+            redisAsyncSetConnectCallback(context, ConnectCallback);
+            redisAsyncSetDisconnectCallback(context, DisconnectCallback);
             if (_onSubscribe->IsFunction()) {
                 onSubscribe = new Nan::Callback(Local<Function>::Cast(_onSubscribe));
             } else {

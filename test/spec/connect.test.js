@@ -39,17 +39,17 @@ describe('Basic Connect Test', function() {
     });
 
     // TODO: fix segfault here
-    // it("Disconnects directly with status=OK and no segfault", function (done) {
-    //     var client = new r.Client({
-    //         host: process.env.REDIS_HOST || 'localhost', 
-    //         port: process.env.REDIS_PORT || 6379,
-    //         onConnect: function () { client.disconnect(); },
-    //         onDisconnect: function (reply) {
-    //             reply.should.equal(0);
-    //             done();
-    //         }
-    //     });
-    // });
+    it("Disconnects directly with status=OK and no segfault", function (done) {
+        var client = new r.Client({
+            host: process.env.REDIS_HOST || 'localhost', 
+            port: process.env.REDIS_PORT || 6379,
+            onConnect: function () { client.disconnect(); },
+            onDisconnect: function (reply) {
+                reply.should.equal(0);
+                done();
+            }
+        });
+    });
 
     it("Disconnects from existing server on quit command with status=error", function (done) {
         var client = new r.Client({
