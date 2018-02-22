@@ -25,7 +25,9 @@ namespace node_redis_addon {
     bool Command::Is(const char* input, const char* cmd) {
         unsigned int fns = 0;
         size_t cl = strlen(cmd);
+        size_t il = strlen(input);
         while(input[fns] == ' ') fns++;
-        return strncasecmp((char*)(input + fns), cmd, cl) == 0;
+        return (strncasecmp((char*)(input + fns), cmd, cl) == 0) &&
+          ((cl == il) || (input[fns + cl] == ' '));
     }
 }
