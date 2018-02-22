@@ -22,12 +22,10 @@ namespace node_redis_addon {
     /**
      * Checks if a string is a certain redis command
      */
-    bool Command::Is(const char* input, const char* cmd) {
-        unsigned int fns = 0;
+    bool Command::Is(char* input, char* cmd) {
+        char* token = strtok(input, " ");
         size_t cl = strlen(cmd);
-        size_t il = strlen(input);
-        while(input[fns] == ' ') fns++;
-        return (strncasecmp((char*)(input + fns), cmd, cl) == 0) &&
-          ((cl == il) || (input[fns + cl] == ' '));
+        size_t tl = strlen(token);
+        return token != NULL && tl == cl && strncasecmp(token, cmd, cl) == 0;
     }
 }
